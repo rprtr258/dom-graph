@@ -3,10 +3,10 @@
 		"sin": Math.sin,
 		"cos": Math.cos,
 	};
-	let factor = 1;
-	let fcn: keyof typeof fcns = "sin";
-	let theta = 1;
-	let offset = 0;
+	export let factor = 1;
+	export let fcn: keyof typeof fcns;
+	export let theta = 1;
+	export let offset = 0;
 	export let func: (x: number) => number;
 	$: func = (x: number) => factor*(fcns[fcn](theta * x + offset));
 </script>
