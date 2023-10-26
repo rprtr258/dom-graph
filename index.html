@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+
+<head>
+	<title>DOM Graphs</title>
+	<style>
+		canvas {
+			width: 450px;
+			float: left;
+			border: 1px solid black;
+			margin: 5px;
+		}
+	</style>
+</head>
+<script type="importmap">
+  {
+    "imports": {
+      "vue": "https://unpkg.com/vue@3/dist/vue.esm-browser.prod.js"
+    }
+  }
+</script>
+
+<script type="module">
+	import { createApp } from "vue";
+	import Root from './root.js'
+
+	createApp(Root).mount('#app')
+</script>
+
+<body id="app">
+</body>
