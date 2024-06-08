@@ -12,7 +12,7 @@ function evalAt(formula: string, x: number): number {
   return eval(formulaPrelude + `const x = ${x};` + formula);
 }
 
-const x0  = ref(0);
+const x0 = ref(0);
 const zoomx = ref(0);
 const y0 = ref(0);
 const zoomy = ref(0);
@@ -36,6 +36,8 @@ function draw() {
   }
 
   // NOTE: for some fucking reason x0.value is string here
+  // and it seems every range input v-model is string
+  // but it happens to matter only here in plus operations
   const minx = x0.value - Math.pow(2, zoomx.value);
   const maxx = +x0.value + Math.pow(2, zoomx.value);
   const miny = y0.value - Math.pow(2, zoomy.value);
