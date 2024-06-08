@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { onMounted, ref, watch, type Ref } from 'vue';
-import SliderInput from './components/SliderInput.vue';
 
 function remap(x: number, old_min: number, old_max: number, new_min: number, new_max: number): number {
   return (x - old_min) / (old_max - old_min) * (new_max - new_min) + new_min;
@@ -13,12 +12,10 @@ function evalAt(formula: string, x: number): number {
   return eval(formulaPrelude + `const x = ${x};` + formula);
 }
 
-const lowx  = ref(-1);
-const highx = ref( 1);
-const zoomx = ref( 0);
-const lowy  = ref(-1);
-const highy = ref( 1);
-const zoomy = ref( 0);
+const x0  = ref(0);
+const zoomx = ref(0);
+const y0 = ref(0);
+const zoomy = ref(0);
 const steps = ref(10000);
 const formula = ref("sin(1/x)");
 const examples = ["sin(1/x)", "sin(x)", "x*x", "1/x", "cos(x)", "cos(1/x)"];
@@ -28,7 +25,7 @@ const $canvas = ref(null);
 
 function draw() {
   try { // try to parse formula
-    evalAt(formula.value, lowx.value);
+    evalAt(formula.value, x0.value);
     error.value = null;
   } catch (e) { // if failed, do nothing
     if (e instanceof SyntaxError) {
@@ -38,10 +35,11 @@ function draw() {
     throw e;
   }
 
-  const minx = lowx.value * Math.pow(2, zoomx.value);
-  const maxx = highx.value * Math.pow(2, zoomx.value);
-  const miny = lowy.value * Math.pow(2, zoomy.value);
-  const maxy = highy.value * Math.pow(2, zoomy.value);
+  // NOTE: for some fucking reason x0.value is string here
+  const minx = x0.value - Math.pow(2, zoomx.value);
+  const maxx = +x0.value + Math.pow(2, zoomx.value);
+  const miny = y0.value - Math.pow(2, zoomy.value);
+  const maxy = +y0.value + Math.pow(2, zoomy.value);
   const step = (maxx - minx) / steps.value;
 
   // ====== actually drawing =======
@@ -78,7 +76,7 @@ function draw() {
   }
   ctx.stroke();
 }
-watch([lowx, highx, zoomx, lowy, highy, zoomy, steps, formula], draw);
+watch([x0, zoomx, y0, zoomy, steps, formula], draw);
 onMounted(draw);
 </script>
 <template>
@@ -89,15 +87,15 @@ onMounted(draw);
   <div>
     <p><input type="number" min=100 step=100 v-model="steps"></p>
   </div><div>
-    <SliderInput name="lowx" min=-100 max=100 v-model:max2="highx" v-model:value="lowx" />
-    <SliderInput name="highx" min=-100 max=100 v-model:min2="lowx" v-model:value="highx" />
+    <p>x0<input type="range" :min=-100 :max=100 v-model="x0">{{x0}}</p>
+    <div style="width: 1em;"></div>
+    <p>zoomx<input type="range" :min=-10 :max=10 :step=0.1 v-model="zoomx">{{zoomx}}</p>
+    <div style="width: 1em;"></div>
   </div><div>
-    <SliderInput name="zoomx" min=-10 max=10 step="0.1" v-model:value="zoomx" />
-  </div><div>
-    <SliderInput name="lowy" min=-100 max=100 v-model:max2="highy" v-model:value="lowy" />
-    <SliderInput name="highy" min=-100 max=100 v-model:min2="lowy" v-model:value="highy" />
-  </div><div>
-    <SliderInput name="zoomy" min=-10 max="10" step="0.1" v-model:value="zoomy" />
+    <p>y0<input type="range" :min=-100 :max=100 v-model="y0">{{y0}}</p>
+    <div style="width: 1em;"></div>
+    <p>zoomy<input type="range" :min=-10 :max=10 :step=0.1 v-model="zoomy">{{zoomy}}</p>
+    <div style="width: 1em;"></div>
   </div>
 </template>
 <style scoped>
