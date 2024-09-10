@@ -1,13 +1,61 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8">
-    <link rel="icon" href="/favicon.ico">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DOM Graphs</title>
-  </head>
-  <body>
-    <div id="app"></div>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <link rel="icon" href="/favicon.ico">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DOM Graphs</title>
+  <style>
+    #app {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 2rem;
+      font-weight: normal;
+    }
+    canvas {
+      width: 450px;
+      float: left;
+      border: 1px solid black;
+      margin: 5px;
+    }
+    div * {
+      display: inline-block;
+    }
+  </style>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script src="root.js"></script>
+</head>
+<body x-data='{
+  x0: 0,
+  zoomx: 0,
+  y0: 0,
+  zoomy: 0,
+  steps: 10000,
+  formula: "sin(1/x)",
+  error: null,
+}' x-effect="draw($data, $refs.canvas)">
+  <canvas x-ref="canvas" width="400" height="400"></canvas>
+  <p><input type="textarea" x-model="formula"></p>
+  <p style="color: red" x-text="error"></p>
+  <div>
+    <p>steps</p>
+    <input type="number" min=100 step=100 x-model="steps">
+  </div>
+  <div>
+    <p>x0</p><input type="range" :min=-100 :max=100 x-model="x0"><p x-text="x0"></p>
+    <div style="width: 1em;"></div>
+    <p>zoomx</p><input type="range" :min=-10 :max=10 :step=0.1 x-model="zoomx"><p x-text="zoomx"></p>
+    <div style="width: 1em;"></div>
+  </div>
+  <div>
+    <p>y0</p><input type="range" :min=-100 :max=100 x-model="y0"><p x-text="y0"></p>
+    <div style="width: 1em;"></div>
+    <p>zoomy</p><input type="range" :min=-10 :max=10 :step=0.1 x-model="zoomy"><p x-text="zoomy"></p>
+    <div style="width: 1em;"></div>
+  </div>
+  <div>Examples:</div>
+  <template x-for='example in ["sin(1/x)", "sin(x)", "x*x", "1/x", "cos(x)", "cos(1/x)"]'>
+    <button :key="example" x-on:click="formula = example" x-text="example"></button>
+  </template>
+</body>
 </html>
