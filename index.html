@@ -45,13 +45,11 @@
     <p>x0</p><input type="range" :min=-100 :max=100 x-model="x0"><p x-text="x0"></p>
     <div style="width: 1em;"></div>
     <p>zoomx</p><input type="range" :min=-10 :max=10 :step=0.1 x-model="zoomx"><p x-text="zoomx"></p>
-    <div style="width: 1em;"></div>
   </div>
   <div>
     <p>y0</p><input type="range" :min=-100 :max=100 x-model="y0"><p x-text="y0"></p>
     <div style="width: 1em;"></div>
     <p>zoomy</p><input type="range" :min=-10 :max=10 :step=0.1 x-model="zoomy"><p x-text="zoomy"></p>
-    <div style="width: 1em;"></div>
   </div>
   <div>Examples:</div>
   <template x-for='example in ["sin(1/x)", "sin(x)", "x*x", "1/x", "cos(x)", "cos(1/x)"]'>
