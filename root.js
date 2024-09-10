@@ -1,131 +1,68 @@
+// function remap(x: number, old_min: number, old_max: number, new_min: number, new_max: number): number {
 function remap(x, old_min, old_max, new_min, new_max) {
   return (x - old_min) / (old_max - old_min) * (new_max - new_min) + new_min;
 }
 
-const formulaPrelude = `
-  const sin = Math.sin;
-  const cos = Math.cos;
-`;
+// function evalAt(formula: string, xs: []number): []number {
+function evalAt(formula, xs) {
+  const formulaPrelude = `
+    const sin = Math.sin;
+    const cos = Math.cos;
+  `;
+  return eval(formulaPrelude + `[${xs}].map(x => ` + formula + `)`);
+}
 
-export default {
-  data() {
-    return {
-      formula: "sin(1/x)",
-      lowx: -1,
-      highx: 1,
-      zoomx: 0,
-      lowy: -1,
-      highy: 1,
-      zoomy: 0,
-      steps: 100,
-      examples: ["sin(1/x)", "sin(x)", "x*x", "1/x", "cos(x)", "cos(1/x)"],
+function draw(props, canvas) {
+  const {formula, x0, zoomx, y0, zoomy, steps} = props;
+
+  props.error = (() => {
+    try { // try to parse formula
+      evalAt(formula, [x0]);
+      return null;
+    } catch (e) { // if failed, do nothing
+      if (e instanceof SyntaxError) {
+        return e.message;
+      }
+      throw e;
     }
-  },
-  methods: {
-    draw() {
-      try {
-        // try to parse formula
-        eval(formulaPrelude + `const x = ${this.lowx};` + this.formula);
-      } catch {
-        // if failed, do nothing
-        return;
-      };
+  })();
 
-      this.ctx.fillStyle = "white";
-      this.ctx.fillRect(0, 0, this.$refs.canvas.width, this.$refs.canvas.height);
-      this.ctx.strokeStyle = "black";
-      this.ctx.beginPath();
-      const minx = this.lowx * Math.pow(2, this.zoomx);
-      const maxx = this.highx * Math.pow(2, this.zoomx);
-      const miny = this.lowy * Math.pow(2, this.zoomy);
-      const maxy = this.highy * Math.pow(2, this.zoomy);
-      const step = (maxx - minx) / this.steps;
-      console.log("drawing", minx, maxx, this.formula);
-      for (let x = minx; x < maxx; x += step) {
-        const y = eval(formulaPrelude + `const x = ${x};` + this.formula);
-        this.ctx.lineTo(
-          remap(x, minx, maxx, 0, this.$refs.canvas.width),
-          remap(y, miny, maxy, this.$refs.canvas.height, 0),
-        );
-      }
-      this.ctx.stroke();
-    },
-    updLowx(lowx) {
-      this.lowx = lowx;
-      if (this.lowx >= this.highx) {
-        this.lowx = this.highx - 1;
-      }
-    },
-    updHighx(highx) {
-      this.highx = highx;
-      if (this.highx <= this.lowx) {
-        this.highx = this.lowx + 1;
-      }
-    },
-    updLowy(lowy) {
-      this.lowy = lowy;
-      if (this.lowy >= this.highy) {
-        this.lowy = this.highy - 1;
-      }
-    },
-    updHighy(highy) {
-      this.highy = highy;
-      if (this.highy <= this.lowy) {
-        this.highy = this.lowy + 1;
-      }
-    },
-  },
-  beforeUpdate() {
-    this.draw();
-  },
-  mounted() {
-    this.ctx = this.$refs.canvas.getContext("2d");
-    this.draw();
-  },
-  template: /*html*/`
-    <canvas ref="canvas" width="400" height="400" />
-    <p><input type="textarea" v-model="formula"></p>
-    <p><input type="number" min="100" step="100" v-model="steps"></p>
-    <div>
-      <p>
-        lowx
-        <input type="range" min="-100" max="100" :value="lowx" @input="event => updLowx(Number(event.target.value))">
-        {{lowx}}
-      </p>
-      <div style="width: 1em;"></div>
-      <p>
-        highx
-        <input type="range" min="-100" max="100" :value="highx" @input="event => updHighx(Number(event.target.value))">
-        {{highx}}
-      </p>
-      <div style="width: 1em;"></div>
-      <p>
-        zoomx
-        <input type="range" min="-10" max="10" step="0.1" v-model="zoomx">
-        {{zoomx}}
-      </p>
-    </div>
-    <div>
-      <p>
-        lowy
-        <input type="range" min="-100" max="100" :value="lowy" @input="event => updLowy(Number(event.target.value))">
-        {{lowy}}
-      </p>
-      <div style="width: 1em;"></div>
-      <p>
-        highy
-        <input type="range" min="-100" max="100" :value="highy" @input="event => updHighy(Number(event.target.value))">
-        {{highy}}
-      </p>
-      <div style="width: 1em;"></div>
-      <p>
-        zoomy
-        <input type="range" min="-10" max="10" step="0.1" v-model="zoomy">
-        {{zoomy}}
-      </p>
-    </div>
-    <div>
-      <button v-for="example in examples" @click="formula = example">{{example}}</button>
-    </div>
-  `
+  const zoomxpw2 = Math.pow(2, zoomx);
+  const zoomypw2 = Math.pow(2, zoomy);
+  const minx =  x0 - zoomxpw2;
+  const maxx = +x0 + zoomxpw2;
+  const miny =  y0 - zoomypw2;
+  const maxy = +y0 + zoomypw2;
+  const step = (maxx - minx) / steps;
+
+  // ====== actually drawing =======
+  const ctx = canvas.getContext("2d");
+  // NOTE: I am too dumb to just set appropriate transform matrix on canvas once
+  // function lineTo(x: number, y: number) {
+  function lineTo(x, y) {
+    ctx.lineTo(
+      remap(x, minx, maxx, 0, canvas.width),
+      remap(y, miny, maxy, canvas.height, 0),
+    );
+  }
+  // background
+  ctx.fillStyle = "white";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  // x-axis
+  ctx.strokeStyle = "black";
+  ctx.beginPath();
+  lineTo(minx, 0);
+  lineTo(maxx, 0);
+  ctx.stroke();
+  // y-axis
+  ctx.beginPath();
+  lineTo(0, miny);
+  lineTo(0, maxy);
+  ctx.stroke();
+  // graph itself
+  ctx.strokeStyle = "blue";
+  ctx.beginPath();
+  const xs = Array.from({length: steps}, (_, i) => minx + i * step);
+  evalAt(formula, xs).forEach((y, i) => lineTo(xs[i], y));
+  ctx.stroke();
 }
