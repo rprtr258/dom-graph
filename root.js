@@ -11,6 +11,7 @@ export default {
   data() {
     return {
       formula: "sin(1/x)",
+      error: null,
       lowx: -1,
       highx: 1,
       zoomx: 0,
@@ -23,13 +24,13 @@ export default {
   },
   methods: {
     draw() {
-      try {
-        // try to parse formula
+      try { // try to parse formula
         eval(formulaPrelude + `const x = ${this.lowx};` + this.formula);
-      } catch {
-        // if failed, do nothing
+      } catch (e) {
+        this.error = e.message;
         return;
       };
+      this.error = null;
 
       this.ctx.fillStyle = "white";
       this.ctx.fillRect(0, 0, this.$refs.canvas.width, this.$refs.canvas.height);
@@ -49,6 +50,21 @@ export default {
         );
       }
       this.ctx.stroke();
+
+      this.ctx2.fillStyle = "white";
+      this.ctx2.fillRect(0, 0, this.$refs.canvas.width, this.$refs.canvas.height);
+      this.ctx2.strokeStyle = "black";
+      this.ctx2.beginPath();
+      const POINTS = 10000;
+      for (let i = 0; i < POINTS; i++) {
+        const x = Math.tan(remap(i, 0, POINTS, -Math.PI/2, Math.PI/2));
+        const y = eval(formulaPrelude + `const x = ${x};` + this.formula);
+        this.ctx2.lineTo(
+          remap(i, 0, POINTS, 0, this.$refs.canvas.width),
+          remap(Math.atan(y), -Math.PI/2, Math.PI/2, this.$refs.canvas.height, 0),
+        );
+      }
+      this.ctx2.stroke();
     },
     updLowx(lowx) {
       this.lowx = lowx;
@@ -80,52 +96,56 @@ export default {
   },
   mounted() {
     this.ctx = this.$refs.canvas.getContext("2d");
+    this.ctx2 = this.$refs.canvas2.getContext("2d");
     this.draw();
   },
-  template: /*html*/`
+  template: /*html*/`<div style="display: grid; grid-template-columns: auto 1fr auto;">
     <canvas ref="canvas" width="400" height="400" />
-    <p><input type="textarea" v-model="formula"></p>
-    <p><input type="number" min="100" step="100" v-model="steps"></p>
-    <div>
-      <p>
-        lowx
-        <input type="range" min="-100" max="100" :value="lowx" @input="event => updLowx(Number(event.target.value))">
-        {{lowx}}
-      </p>
-      <div style="width: 1em;"></div>
-      <p>
-        highx
-        <input type="range" min="-100" max="100" :value="highx" @input="event => updHighx(Number(event.target.value))">
-        {{highx}}
-      </p>
-      <div style="width: 1em;"></div>
-      <p>
-        zoomx
-        <input type="range" min="-10" max="10" step="0.1" v-model="zoomx">
-        {{zoomx}}
-      </p>
+    <div style="display: grid; grid-template-rows: repeat(1fr, 4); height: min-content;">
+      <div>
+        Examples: <button v-for="example in examples" @click="formula = example">{{example}}</button>
+      </div>
+      <div>Formula: <input type="textarea" v-model="formula"><span style="color: red">{{error ? error : ""}}</span></div>
+      <div>Points: <input type="number" min="100" step="100" v-model="steps"></div>
+      <div>
+        <p>
+          lowx
+          <input type="range" min="-100" max="100" :value="lowx" @input="event => updLowx(Number(event.target.value))">
+          {{lowx}}
+        </p>
+        <div style="width: 1em;"></div>
+        <p>
+          highx
+          <input type="range" min="-100" max="100" :value="highx" @input="event => updHighx(Number(event.target.value))">
+          {{highx}}
+        </p>
+        <div style="width: 1em;"></div>
+        <p>
+          zoomx
+          <input type="range" min="-10" max="10" step="0.1" v-model="zoomx">
+          {{zoomx}}
+        </p>
+      </div>
+      <div>
+        <p>
+          lowy
+          <input type="range" min="-100" max="100" :value="lowy" @input="event => updLowy(Number(event.target.value))">
+          {{lowy}}
+        </p>
+        <div style="width: 1em;"></div>
+        <p>
+          highy
+          <input type="range" min="-100" max="100" :value="highy" @input="event => updHighy(Number(event.target.value))">
+          {{highy}}
+        </p>
+        <div style="width: 1em;"></div>
+        <p>
+          zoomy
+          <input type="range" min="-10" max="10" step="0.1" v-model="zoomy">
+          {{zoomy}}
+        </p>
+      </div>
     </div>
-    <div>
-      <p>
-        lowy
-        <input type="range" min="-100" max="100" :value="lowy" @input="event => updLowy(Number(event.target.value))">
-        {{lowy}}
-      </p>
-      <div style="width: 1em;"></div>
-      <p>
-        highy
-        <input type="range" min="-100" max="100" :value="highy" @input="event => updHighy(Number(event.target.value))">
-        {{highy}}
-      </p>
-      <div style="width: 1em;"></div>
-      <p>
-        zoomy
-        <input type="range" min="-10" max="10" step="0.1" v-model="zoomy">
-        {{zoomy}}
-      </p>
-    </div>
-    <div>
-      <button v-for="example in examples" @click="formula = example">{{example}}</button>
-    </div>
-  `
+    <canvas ref="canvas2" width="400" height="400" />
+  </div>`
 }
